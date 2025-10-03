@@ -1,98 +1,39 @@
 ## Getting Started
 
-### Installation du projet
-
-1. Créez une clef SSH pour votre compte Azure :
-
-    ```bash
-    ssh-keygen -t rsa -b 4096 -C "your_email@example.com"
-    ```
-
-    a. Puis ajoutez la clef SSH à votre compte Azure :
-
-    - [Tutoriel](https://docs.microsoft.com/en-us/azure/virtual-machines/linux/create-ssh-keys-detailed)
-
-    b. Pensez à changer votre config SSH :
-
-    - Ouvrez le fichier `~/.ssh/config`:
-    - Ajoutez les lignes :
-
-    ```
-    Host ssh.dev.azure.com
-
-    IdentityFile ~/.ssh/<ma-clef-ssh>
-    IdentitiesOnly yes
-    ```
-
-2. Si ce n'est pas déjà fait, installez PNPM :
-
--   [PNPM](https://pnpm.io/installation)
-
-```bash
-pnpm env use --global 20.18.3
-pnpm install
-```
 
 ### Installation de la BDD
 
-1. Vérifiez que vous avez SQL server installé
-    - Si ce n'est pas le cas, installez-le [ici](https://www.microsoft.com/fr-fr/sql-server/sql-server-downloads)
-2. Créez une base de données nommée `spareparts` :
-   a. Sur Ubuntu :
-   i. Connectez-vous à votre SQL server:
-   `bash
-     sqlcmd -S <server> -U <username> -P <password> -C
-     `
-   ii. Créez la base de données:
-   `sql
-     CREATE DATABASE spareparts;
-     `
-   b. Sur Windows :
-   i. Lancer la commande pour créer une instance : `sqllocaldb c spareparts`
-   ii. Lancer la commande pour lancer le serveur : `sqllocaldb s spareparts`
-   iii. Ouvrez SQL Server Management Studio et connectez-vous à l'instance : `(localdb)\spareparts`
-   iv. Créez la base de données spareparts sur SSMS
-   v. Activer la BDD autonome :
-   `sql
-     sp_configure 'contained database authentication', 1;  
-     GO  
-     RECONFIGURE;  
-     GO  
-     `
-   vi. Kill les processus liés à la BDD :
-   `       EXEC sp_who2;
-   `
-   vii. Kill les processus liés à la BDD :
-   `       KILL <SPID>;
-   `
-   vii. Activer l'option de BDD autonome
-   ix. Créer le user avec mot de passe.
-3. Copier `env.exemple` par `.env` et remplissez-le avec les informations de votre user.
+Prérequis
+🐋 Docker Desktop -> Téléchargez
+🪟 WSL Fonctionnel -> Voir autre tuto quand créé
 
-### BDD de test
+Installer la BDD
+Dans ce guide, nous allons utiliser l’interface GUI de docker appelée Docker Desktop. Tout est faisable sur un terminal si vous préférez. Ouvrez maintenant Docker Desktop.
 
-1. Créez une base de données nommée `sparepartstest`
-    - Connectez-vous à votre SQL server:
-    ```bash
-    sqlcmd -S <server> -U <username> -P <password> -C
-    ```
-2. Créez le user sql server de test ainsi que la base de données:
+Cette étape ne concerne que les développeurs sur Windows :
 
-    ```sql
-    CREATE DATABASE sparepartstest;
-    GO
+Allez dans les Paramètres de Docker Desktop.
+Dans Général, sélectionnez Use WSL 2 based engine si ce n’est pas déjà le cas.
+Cliquez sur Appliquer
+Vous devriez maintenant avoir accès à Docker sur votre environnement WSL !
 
-    CREATE LOGIN testuser WITH PASSWORD = 'Qsdqsdqsd1';
-    GO
+Ouvrez un terminal depuis VS Code sur l’env WSL
+Installez l’image suivante :
+docker pull mcr.microsoft.com/azure-sql-edge:latest
+Créez le container :
+docker run --cap-add SYS_PTRACE -e 'ACCEPT_EULA=1' \
+  -e 'MSSQL_SA_PASSWORD=yourStrong(!)Password' \ 
+  -p 1433:1433 --name azuresqledge \
+  -d mcr.microsoft.com/azure-sql-edge
+Dans Docker Desktop, ouvrez vos container, vous devez voir votre container en cours d’exécution. Cliquez ici :
+Image trois petit point et sur open in terminal
 
-    USE sparepartstest;
-    CREATE USER testuser FOR LOGIN testuser;
-    GRANT CONTROL ON DATABASE::sparepartstest TO testuser;
-    GO
-    ```
+Ouvrez mssql
+/opt/mssql-tools/bin/sqlcmd -S localhost -U sa \
+  -P <your_password>
+Créez la DB de votre choix
 
-3. Copier `env.test.exemple` par `.env.test`
-4. Vérifie que les tests arrivent à se connecter à la BDD de test avec `pnpm test`
+Installez l’extension de votre choix sur VSCode pour visualiser votre DB
 
 ### Prettier
 
